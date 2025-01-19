@@ -100,7 +100,12 @@ export async function signup(currentState: { message: string }, formData: FormDa
         return redirect('/subscribe')
     } catch (error) {
         console.error('Error in signup:', error)
-        return { message: "Failed to setup user account" }
+        // Return detailed error information for debugging
+        return { 
+            message: `Detailed error in signup: ${error instanceof Error ? 
+                `\nMessage: ${error.message}\nStack: ${error.stack}` : 
+                `\nUnexpected error type: ${JSON.stringify(error)}`}`
+        }
     }
 }
 

@@ -44,9 +44,13 @@ export default function SignupForm() {
                     required
                 />
             </div>
-            <Button className="w-full mt-4" type="submit" aria-disabled={pending}>  {pending ? 'Submitting...' : 'Sign up'}</Button>
+            <Button className="w-full mt-4" type="submit" aria-disabled={pending}>
+                {pending ? 'Submitting...' : 'Sign up'}
+            </Button>
             {formState?.message && (
-                <p className="text-sm text-red-500 text-center py-2">{formState.message}</p>
+                <pre className="text-sm text-red-500 bg-red-50 p-2 rounded mt-4 overflow-auto max-h-40">
+                    {formState.message}
+                </pre>
             )}
         </form>
     )
