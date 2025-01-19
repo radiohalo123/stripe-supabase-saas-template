@@ -4,14 +4,24 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useFormState, useFormStatus } from 'react-dom'
 import { signup } from '@/app/auth/actions'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function SignupForm() {
+    const router = useRouter()
     const initialState = {
-        message: ''
+        message: '',
+        success: false
     }
 
     const [formState, formAction] = useFormState(signup, initialState)
     const { pending } = useFormStatus()
+
+    useEffect(() => {
+        if (formState.success) {
+            router.push('/subscribe')
+        }
+    }, [formState.success, router])
 
     return (
         <form action={formAction}>
@@ -47,7 +57,7 @@ export default function SignupForm() {
             <Button className="w-full mt-4" type="submit" aria-disabled={pending}>
                 {pending ? 'Submitting...' : 'Sign up'}
             </Button>
-            {formState?.message && (
+            {formState?.message && !formState.success && (
                 <pre className="text-sm text-red-500 bg-red-50 p-2 rounded mt-4 overflow-auto max-h-40">
                     {formState.message}
                 </pre>

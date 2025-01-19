@@ -43,7 +43,7 @@ export async function forgotPassword(currentState: { message: string }, formData
     redirect(`/forgot-password/success`)
 
 }
-export async function signup(currentState: { message: string }, formData: FormData) {
+export async function signup(currentState: { message: string, success?: boolean }, formData: FormData) {
     const supabase = createClient()
 
     const data = {
@@ -57,7 +57,7 @@ export async function signup(currentState: { message: string }, formData: FormDa
         const existingDBUser = await db.select().from(usersTable).where(eq(usersTable.email, data.email))
         
         if (existingDBUser.length > 0) {
-            return { message: "An account with this email already exists. Please login instead." }
+            return { message: "An account with this email already exists. Please login instead.", success: false }
         }
 
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -74,13 +74,13 @@ export async function signup(currentState: { message: string }, formData: FormDa
 
         if (signUpError) {
             if (signUpError.message.includes("already registered")) {
-                return { message: "An account with this email already exists. Please login instead." }
+                return { message: "An account with this email already exists. Please login instead.", success: false }
             }
-            return { message: signUpError.message }
+            return { message: signUpError.message, success: false }
         }
 
         if (!signUpData?.user) {
-            return { message: "Failed to create user" }
+            return { message: "Failed to create user", success: false }
         }
 
         // create Stripe Customer Record using signup response data
@@ -96,15 +96,12 @@ export async function signup(currentState: { message: string }, formData: FormDa
         })
 
         revalidatePath('/', 'layout')
-        // Successfully created everything, now we can redirect
-        return redirect('/subscribe')
+        return { message: "Signup successful!", success: true }
     } catch (error) {
         console.error('Error in signup:', error)
-        // Return detailed error information for debugging
         return { 
-            message: `Detailed error in signup: ${error instanceof Error ? 
-                `\nMessage: ${error.message}\nStack: ${error.stack}` : 
-                `\nUnexpected error type: ${JSON.stringify(error)}`}`
+            message: `Error during signup: ${error instanceof Error ? error.message : JSON.stringify(error)}`,
+            success: false
         }
     }
 }
