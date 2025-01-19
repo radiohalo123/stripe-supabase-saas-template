@@ -11,29 +11,34 @@ interface StripeProduct {
   name: string;
   description: string | null;
   features: string[];
-  price: Stripe.Price;
+  price: Stripe.Price | null;
 }
 
 // This makes the page dynamic instead of static
 export const revalidate = 3600 // Revalidate every hour
 
 async function getStripeProducts(): Promise<StripeProduct[]> {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2024-06-20'
-  });
+  try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2024-06-20'
+    });
 
-  const products = await stripe.products.list({
-    active: true,
-    expand: ['data.default_price']
-  });
+    const products = await stripe.products.list({
+      active: true,
+      expand: ['data.default_price']
+    });
 
-  return products.data.map(product => ({
-    id: product.id,
-    name: product.name,
-    description: product.description,
-    features: product.metadata?.features ? JSON.parse(product.metadata.features) : [],
-    price: product.default_price as Stripe.Price
-  }));
+    return products.data.map(product => ({
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      features: product.metadata?.features ? JSON.parse(product.metadata.features) : [],
+      price: product.default_price as Stripe.Price || null
+    }));
+  } catch (error) {
+    console.error('Error fetching Stripe products:', error);
+    return []; // Return empty array if there's an error
+  }
 }
 
 export default async function LandingPage() {
@@ -166,9 +171,9 @@ export default async function LandingPage() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-3xl font-bold">
-                      {product.price.unit_amount 
-                        ? `$${(product.price.unit_amount / 100).toFixed(2)}/${product.price.recurring?.interval}`
-                        : 'Custom'}
+                      {product.price && product.price.unit_amount 
+                        ? `$${(product.price.unit_amount / 100).toFixed(2)}/${product.price.recurring?.interval || 'mo'}`
+                        : 'Contact us'}
                     </p>
                     <ul className="mt-4 space-y-2">
                       {product.features?.map((feature, index) => (
