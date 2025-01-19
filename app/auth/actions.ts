@@ -96,7 +96,8 @@ export async function signup(currentState: { message: string }, formData: FormDa
         })
 
         revalidatePath('/', 'layout')
-        redirect('/subscribe')
+        // Successfully created everything, now we can redirect
+        return redirect('/subscribe')
     } catch (error) {
         console.error('Error in signup:', error)
         return { message: "Failed to setup user account" }
